@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Grant Scanner — Score Report · Accountability Lab Mexico</title>
+    <meta name="description"
+        content="AI-powered pre-qualification score report for Accountability Lab Mexico grant applications." />
+    <link rel="stylesheet" href="shared.css" />
+    <style>
+        /* ── Score page specific ── */
+        .score-hero {
+            display: flex;
+            align-items: center;
+            gap: 28px;
+            padding: 24px;
+            border-radius: var(--radius);
+            background: linear-gradient(135deg, rgba(16, 185, 129, .08), rgba(16, 185, 129, .02));
+            border: 1px solid rgba(16, 185, 129, .2);
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        /* ── Gauge: pure SVG, no external CSS dependencies ── */
+        .gauge-svg-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .gauge-svg-wrap svg {
+            overflow: visible;
+        }
+
+        .score-hero-info {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        /* Breakdown bars */
+        .breakdown-item {
+            display: grid;
+            grid-template-columns: 1fr 80px 56px;
+            gap: 8px;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .breakdown-item:last-child {
+            border-bottom: none;
+        }
+
+        .bar-track {
+            background: var(--surface2);
+            border-radius: 99px;
+            height: 7px;
+            overflow: hidden;
+        }
+
+        .bar-fill {
+            height: 100%;
+            border-radius: 99px;
+            transition: width 1s ease;
+        }
+
+        .bar-fill.high {
+            background: var(--accent);
+        }
+
+        .bar-fill.mid {
+            background: var(--gold);
+        }
+
+        .bar-fill.low {
+            background: var(--red);
+        }
+
+        .bar-fraction {
+            font-size: 12px;
+            font-weight: 700;
+            text-align: right;
+            color: var(--muted2);
+        }
+
+        /* Bullets */
+        .check-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .check-list li {
+            display: flex;
+            gap: 10px;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .check-list li::before {
+            content: attr(data-icon);
+            font-size: 15px;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        /* Framing strategy card */
+        .framing-card {
+            background: linear-gradient(135deg, rgba(16, 185, 129, .06) 0%, rgba(16, 185, 129, .01) 100%);
+            border: 1px solid rgba(16, 185, 129, .2);
+            border-radius: var(--radius);
+            padding: 24px;
+        }
+
+        .framing-headline {
+            font-size: 17px;
+            font-weight: 800;
+            color: var(--text);
+            margin-bottom: 12px;
+            line-height: 1.35;
+        }
+
+        .framing-body {
+            font-size: 13px;
+            color: var(--muted2);
+            line-height: 1.7;
+            margin-bottom: 16px;
+        }
+
+        .framing-bullets {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .framing-bullets li {
+            font-size: 13px;
+            line-height: 1.5;
+            color: var(--text);
+            display: flex;
+            gap: 8px;
+            align-items: flex-start;
+        }
+
+        .framing-bullets li::before {
+            content: '→';
+            color: var(--accent);
+            font-weight: 800;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        /* Lang toggle for framing */
+        .framing-lang-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .framing-lang-btn {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 99px;
+            border: 1px solid var(--border2);
+            background: var(--surface2);
+            color: var(--muted2);
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+
+        .framing-lang-btn.active {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+
+        /* Portfolio connections */
+        .portfolio-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .portfolio-chip {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 5px 12px;
+            border-radius: 99px;
+            background: var(--surface2);
+            border: 1px solid var(--border2);
+            color: var(--text);
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .portfolio-chip .chip-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--accent);
+        }
+
+        /* Dimension tooltip */
+        .dim-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text);
+            cursor: help;
+        }
+
+        /* ADJUSTMENT SLIDER */
+        .adjust-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .adjust-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            flex: 1;
+            min-width: 120px;
+            height: 6px;
+            border-radius: 99px;
+            background: var(--surface2);
+            outline: none;
+            cursor: pointer;
+        }
+
+        .adjust-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+            cursor: pointer;
+        }
+
+        .adjust-val {
+            font-size: 22px;
+            font-weight: 900;
+            color: var(--accent);
+            min-width: 44px;
+            text-align: right;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ══ NAVBAR ══ -->
+    <nav class="navbar" role="navigation" aria-label="Main navigation">
+        <a href="index.html" class="navbar-brand" aria-label="Grant Scanner home">
+            <div class="brand-icon">GS</div>
+            <div><span class="brand-name">Grant Scanner</span><span class="brand-org">Accountability Lab Mexico</span>
+            </div>
+        </a>
+        <div class="navbar-links">
+            <a href="index.html" class="nav-link">🏠 Dashboard</a>
+            <a href="#" class="nav-link">📊 Pipeline</a>
+            <a href="#" class="nav-link active">📊 Score</a>
+            <a href="#" class="nav-link">⚙️ Settings</a>
+        </div>
+        <div class="navbar-actions">
+            <span class="nav-badge">AI Analysis</span>
+            <button class="lang-toggle" id="langToggle" title="Switch language / Cambiar idioma"
+                aria-label="Switch language">EN</button>
+            <button class="theme-toggle" id="themeToggle" title="Toggle theme" aria-label="Toggle theme">🌙</button>
+        </div>
+        <button class="burger" id="burgerBtn" aria-label="Open menu" aria-expanded="false">
+            <span></span><span></span><span></span>
+        </button>
+    </nav>
+
+    <!-- Mobile drawer -->
+    <div class="mobile-drawer" id="mobileDrawer" role="navigation">
+        <a href="index.html" class="mobile-nav-link">🏠 Dashboard</a>
+        <a href="grant.html" class="mobile-nav-link">📋 Grant Detail</a>
+        <a href="score.html" class="mobile-nav-link active">📊 Score</a>
+        <div style="padding-top:8px;border-top:1px solid var(--border);">
+            <div style="padding-top:4px;">
+                <button class="mobile-nav-link w-full" style="text-align:left;" onclick="switchLang()">
+                    <span id="mobileLangLabel">🌐 Switch to English</span>
+                </button>
+            </div>
+            <button class="mobile-nav-link w-full" style="text-align:left;" onclick="toggleTheme()">
+                <span id="mobileThemeLabel">🌙 Switch to Dark Mode</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- ══ PAGE ══ -->
+    <div class="page-wrap">
+        <div class="container">
+
+            <!-- Header -->
+            <div class="mb-20">
+                <div class="label mb-8" data-i18n="score.ctx">AI Analysis · Feb 28, 2026</div>
+                <h1 class="page-title" data-i18n="score.title">Pre-Qualification Report</h1>
+                <p class="page-sub">Fundación Merced · IDEAS 2026 · Accountability Lab Mexico</p>
+            </div>
+
+            <!-- ── SCORE HERO ── -->
+            <div class="score-hero mb-24">
+                <!-- Pure SVG gauge: ring + number + /100 + label all inside SVG -->
+                <div class="gauge-svg-wrap">
+                    <svg id="gaugeSvg" width="130" height="150" viewBox="0 0 130 150">
+                        <defs>
+                            <linearGradient id="gaugeGrad2" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" stop-color="#10B981" />
+                                <stop offset="100%" stop-color="#34D399" />
+                            </linearGradient>
+                        </defs>
+                        <!-- background ring -->
+                        <circle cx="65" cy="65" r="52" fill="none" stroke="var(--border2)" stroke-width="11" />
+                        <!-- fill ring (starts empty, animated by JS) -->
+                        <circle id="gaugeFill" cx="65" cy="65" r="52" fill="none" stroke="url(#gaugeGrad2)"
+                            stroke-width="11" stroke-linecap="round" stroke-dasharray="326.73"
+                            stroke-dashoffset="326.73" transform="rotate(-90 65 65)"
+                            style="transition:stroke-dashoffset 1.4s cubic-bezier(.4,0,.2,1);" />
+                        <!-- score number -->
+                        <text id="gaugeNum" x="65" y="58" text-anchor="middle" dominant-baseline="middle" font-size="32"
+                            font-weight="900" fill="var(--accent)" font-family="inherit">0</text>
+                        <!-- /100 -->
+                        <text x="65" y="82" text-anchor="middle" dominant-baseline="middle" font-size="12"
+                            font-weight="700" fill="var(--muted2)" font-family="inherit">/100</text>
+                        <!-- label below ring -->
+                        <text id="gaugeLabelText" x="65" y="130" text-anchor="middle" dominant-baseline="middle"
+                            font-size="9" font-weight="700" fill="var(--muted2)" font-family="inherit"
+                            letter-spacing="0.8">Score de Afinidad</text>
+                    </svg>
+                </div>
+
+                <div class="score-hero-info">
+                    <div class="flex items-center gap-8 mb-8">
+                        <span class="badge badge-urgent" id="heroBadge" data-i18n="score.badge">⚡ Go Recomendado</span>
+                        <span class="text-xs text-muted" id="heroVerified">Verificado Feb 28, 2026</span>
+                    </div>
+                    <div class="font-bold mb-4" style="font-size:17px;" id="heroName">Fundación Merced · IDEAS 2026
+                    </div>
+                    <div class="text-sm text-muted mb-12" id="heroSub">Democracia · Ciudadanía · Juventudes · OSC México
+                    </div>
+                    <div class="flex items-center gap-12" style="flex-wrap:wrap;">
+                        <div>
+                            <div class="text-xs text-muted mb-2" data-i18n="score.align">Alineación</div>
+                            <div class="font-bold text-accent" id="heroAlign">🟢 Alta</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-muted mb-2" data-i18n="score.region">Región</div>
+                            <div class="font-bold" id="heroRegion">🇲🇽 México</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-muted mb-2" data-i18n="score.amount">Monto est.</div>
+                            <div class="font-bold" id="heroAmount">$300–500K MXN</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-muted mb-2" data-i18n="score.deadline">Cierre</div>
+                            <div class="font-bold" style="color:var(--red);" id="heroDeadline">27 mar 2026 (<span
+                                    id="daysLeft">--</span> días)</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── SCORE BREAKDOWN + STRENGTHS ── -->
+            <div class="two-col mb-24">
+
+                <!-- Breakdown bars -->
+                <div class="card">
+                    <div class="card-title mb-16" data-i18n="score.breakdown">Score Breakdown (100 pts)</div>
+                    <div id="breakdownList"></div>
+                </div>
+
+                <!-- Strengths + Watch -->
+                <div style="display:flex;flex-direction:column;gap:16px;">
+                    <div class="card">
+                        <div class="card-title mb-12" data-i18n="score.strengths">Points of Strength</div>
+                        <ul class="check-list" id="strengthsList"></ul>
+                    </div>
+                    <div class="card">
+                        <div class="card-title mb-12" data-i18n="score.watch">Watch Points</div>
+                        <ul class="check-list" id="watchList"></ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── FRAMING STRATEGY (BILINGUAL) ── -->
+            <div class="card mb-24">
+                <div class="flex items-center gap-12 mb-4" style="flex-wrap:wrap;">
+                    <div class="card-title" data-i18n="score.strategy">Framing Strategy</div>
+                    <!-- In-card language toggle for framing -->
+                    <div class="framing-lang-row" style="margin-bottom:0;">
+                        <button class="framing-lang-btn active" id="framingEs" onclick="setFramingLang('es')">🇲🇽
+                            Español</button>
+                        <button class="framing-lang-btn" id="framingEn" onclick="setFramingLang('en')">🇺🇸
+                            English</button>
+                    </div>
+                </div>
+                <div style="font-size:11px;color:var(--muted2);margin-bottom:16px;">
+                    Estrategia de encuadre derivada de la Planeación Estratégica ALMex 2026 · IDEAS Cat. 2
+                </div>
+
+                <div class="framing-card">
+                    <div class="framing-headline" id="framingHeadline"></div>
+                    <div class="framing-body" id="framingBody"></div>
+                    <ul class="framing-bullets" id="framingBullets"></ul>
+                </div>
+            </div>
+
+            <!-- ── HUMAN SCORE ADJUSTMENT ── -->
+            <div class="card mb-24">
+                <div class="card-title mb-4">Ajuste Manual del Score</div>
+                <div class="text-xs text-muted mb-16">
+                    El score de IA es un punto de partida. Ajusta según contexto que conoces internamente.
+                </div>
+                <div class="adjust-row">
+                    <span class="text-sm font-bold text-muted">0</span>
+                    <input type="range" class="adjust-slider" id="scoreSlider" min="0" max="100" value="74"
+                        oninput="updateSlider(this.value)" />
+                    <span class="text-sm font-bold text-muted">100</span>
+                    <span class="adjust-val" id="sliderVal">74</span>
+                </div>
+                <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;" id="scoreContext"></div>
+            </div>
+
+            <!-- ── PORTFOLIO CONNECTIONS ── -->
+            <div class="card mb-24">
+                <div class="card-title mb-12" data-i18n="score.portfolio">Portfolio Connections</div>
+                <div class="text-xs text-muted mb-14">
+                    Programas activos de ALMex que se pueden evidenciar en esta solicitud:
+                </div>
+                <div class="portfolio-chips" id="portfolioChips"></div>
+            </div>
+
+        </div><!-- /container -->
+    </div><!-- /page-wrap -->
+
+    <!-- ── BOTTOM BAR ── -->
+    <div class="bottom-bar">
+        <div class="bottom-steps" aria-label="Pipeline progress">
+            <div class="bottom-dot done" title="Step 1: Dashboard"></div>
+            <div class="bottom-dot done" title="Step 2: Grant Detail"></div>
+            <div class="bottom-dot active" title="Step 3: Score"></div>
+            <div class="bottom-dot" title="Step 4: Decision"></div>
+            <div class="bottom-dot" title="Step 5: Generating"></div>
+            <div class="bottom-dot" title="Step 6: Output"></div>
+        </div>
+        <span class="text-sm text-muted" data-i18n="step.3">Step 3/6 — Score Report</span>
+        <a href="grant.html" class="btn btn-ghost" data-i18n="btn.back.grant">← Grant Detail</a>
+        <a href="decision.html" class="btn btn-primary" data-i18n="btn.decision">Make a Decision →</a>
+    </div>
+
+    <!-- Hover card -->
+    <div class="hover-card" id="hoverCard" role="tooltip" aria-live="polite"></div>
+
+    <script src="grants.js"></script>
+    <script src="app.js"></script>
+    <script>
+        /* ======================================================
+           Score Page Logic v4
+           Reads data from URL: score.html?id=X
+           Falls back to grant id=1 (priority grant)
+           ====================================================== */
+
+        const _params = new URLSearchParams(window.location.search);
+        const _grantId = parseInt(_params.get('id')) || 1;
+        const GRANT = window.GRANTS ? window.GRANTS.find(g => g.id === _grantId) : null;
+        let framingLang = 'es'; // default framing language = ES
+
+        /* ── Gauge animation ── */
+        function animateGauge(target) {
+            const circ = 326.73;  /* 2 * Math.PI * 52 */
+            const fill = document.getElementById('gaugeFill');
+            const numEl = document.getElementById('gaugeNum');
+            let current = 0;
+            const timer = setInterval(() => {
+                current = Math.min(current + 1, target);
+                numEl.textContent = current;
+                fill.setAttribute('stroke-dashoffset', String(circ - (circ * current / 100)));
+                if (current >= target) {
+                    clearInterval(timer);
+                    updateSlider(target);
+                }
+            }, 14);
+        }
+
+        /* ── Render breakdown bars ── */
+        function renderBreakdown(g) {
+            if (!g || !g.scoreBreakdown) return;
+            const list = document.getElementById('breakdownList');
+            const cfg = window.SCORE_CONFIG ? window.SCORE_CONFIG.dimensions : [];
+            const langKey = (typeof currentLang !== 'undefined' ? currentLang : 'es');
+            let html = '';
+            Object.entries(g.scoreBreakdown).forEach(([key, d]) => {
+                const pct = (d.score / d.max) * 100;
+                const barClass = pct >= 70 ? 'high' : pct >= 40 ? 'mid' : 'low';
+                const dimCfg = cfg.find(x => x.key === key) || {};
+                const tipText = langKey === 'es' ? (dimCfg.tooltip_es || '') : (dimCfg.tooltip_en || '');
+                const labelText = langKey === 'es' ? d.label_es : d.label;
+                html += `
+          <div class="breakdown-item">
+            <div class="dim-label with-tooltip">${labelText}
+              ${tipText ? `<span class="tooltip">${tipText}</span>` : ''}
+            </div>
+            <div class="bar-track"><div class="bar-fill ${barClass}" style="width:${pct}%"></div></div>
+            <div class="bar-fraction">${d.score}/${d.max}</div>
+          </div>`;
+            });
+            list.innerHTML = html;
+        }
+
+        /* ── Render strengths / watch points ── */
+        function renderLists(g) {
+            if (!g) return;
+            const lang = (typeof currentLang !== 'undefined' ? currentLang : 'es');
+            const strengths = g.strengths ? g.strengths[lang] || [] : [];
+            const watches = g.watchPoints ? g.watchPoints[lang] || [] : [];
+
+            document.getElementById('strengthsList').innerHTML =
+                strengths.map(s => `<li data-icon="✅">${s}</li>`).join('');
+            document.getElementById('watchList').innerHTML =
+                watches.map(w => `<li data-icon="⚠️">${w}</li>`).join('');
+        }
+
+        /* ── Render framing strategy (bilingual) ── */
+        window.setFramingLang = function (l) {
+            framingLang = l;
+            document.getElementById('framingEs').classList.toggle('active', l === 'es');
+            document.getElementById('framingEn').classList.toggle('active', l === 'en');
+            renderFraming(GRANT);
+        };
+
+        function renderFraming(g) {
+            if (!g || !g.framingStrategy) return;
+            const fs = g.framingStrategy[framingLang];
+            if (!fs) return;
+            document.getElementById('framingHeadline').textContent = fs.headline;
+            document.getElementById('framingBody').textContent = fs.body;
+            document.getElementById('framingBullets').innerHTML =
+                (fs.bullets || []).map(b => `<li>${b}</li>`).join('');
+        }
+
+        /* ── Portfolio chips ── */
+        function renderPortfolio(g) {
+            if (!g) return;
+            const programs = g.programs || [];
+            const chips = document.getElementById('portfolioChips');
+            const details = {
+                'CivActs': { icon: '🏙️', note: 'Yuguelito · periferias CDMX' },
+                'IECM/PC': { icon: '🗳️', note: 'Participación ciudadana · CDMX' },
+                'mXc': { icon: '🎵', note: 'Música · migración · narrativa' },
+                'Integrity': { icon: '🏛️', note: 'Servicio público · integridad' }
+            };
+            chips.innerHTML = programs.map(p => {
+                const d = details[p] || { icon: '📌', note: '' };
+                return `<div class="portfolio-chip"><div class="chip-dot"></div>${d.icon} <strong>${p}</strong>${d.note ? ' · <span style="color:var(--muted2);font-weight:400">' + d.note + '</span>' : ''}</div>`;
+            }).join('');
+        }
+
+        /* ── Score slider context ── */
+        function updateSlider(val) {
+            document.getElementById('sliderVal').textContent = val;
+            const ctx = document.getElementById('scoreContext');
+            const v = parseInt(val);
+            let badges = '';
+            if (v >= 70) badges += '<span class="badge badge-urgent">✅ Go — Proceder</span>';
+            else if (v >= 50) badges += '<span class="badge badge-monitor">⚖️ Pendiente — Revisar</span>';
+            else badges += '<span class="badge badge-closed">✕ No Go — Archivar</span>';
+            ctx.innerHTML = badges;
+        }
+
+        /* ── Init ── */
+        document.addEventListener('DOMContentLoaded', () => {
+            if (GRANT) {
+                // Update page title and subtitle
+                document.querySelector('.page-title') && (document.querySelector('.page-title').setAttribute('data-i18n-skip', '1'));
+                document.querySelector('.page-sub').textContent = GRANT.name + ' · Accountability Lab Mexico';
+                // Update score hero info
+                document.querySelector('.score-hero-info .font-bold').textContent = GRANT.name;
+                document.querySelector('.score-hero-info .text-sm.text-muted').textContent = GRANT.sub;
+                // Update score link in bottom bar
+                const backBtn = document.querySelector('a[href="grant.html"]');
+                if (backBtn) backBtn.href = `grant.html?id=${GRANT.id}`;
+                const decBtn = document.querySelector('a[href="decision.html"]');
+                if (decBtn) decBtn.href = `decision.html?id=${GRANT.id}`;
+                // Animate
+                animateGauge(GRANT.score);
+                renderBreakdown(GRANT);
+                renderLists(GRANT);
+                renderFraming(GRANT);
+                renderPortfolio(GRANT);
+                updateSlider(GRANT.score);
+                const slider = document.getElementById('scoreSlider');
+                if (slider) slider.value = GRANT.score;
+            }
+        });
+
+        // Re-render on lang switch
+        window._scoreRerender = function () {
+            if (!GRANT) return;
+            const lang = (typeof currentLang !== 'undefined' ? currentLang : 'es');
+            renderBreakdown(GRANT);
+            renderLists(GRANT);
+            // Update SVG gauge label text
+            const lbl = document.getElementById('gaugeLabelText');
+            if (lbl) lbl.textContent = lang === 'es' ? 'Score de Afinidad' : 'Affinity Score';
+            // Update hero badge
+            const badge = document.getElementById('heroBadge');
+            if (badge) badge.textContent = lang === 'es' ? '⚡ Go Recomendado' : '⚡ Go Recommended';
+            // Update hero meta labels dynamically via data-i18n (app.js handles)
+            const verEl = document.getElementById('heroVerified');
+            if (verEl) verEl.textContent = lang === 'es' ? 'Verificado Feb 28, 2026' : 'Verified Feb 28, 2026';
+            // Days label in deadline
+            const daysEl = document.getElementById('heroDeadline');
+            if (daysEl && document.getElementById('daysLeft')) {
+                const d = document.getElementById('daysLeft').textContent;
+                daysEl.innerHTML = lang === 'es'
+                    ? `27 mar 2026 (<span id="daysLeft">${d}</span> días)`
+                    : `27 Mar 2026 (<span id="daysLeft">${d}</span> days)`;
+            }
+            // Hero align
+            const alignEl = document.getElementById('heroAlign');
+            if (alignEl && GRANT.align) {
+                const aMap = { es: { high: '🟢 Alta', medium: '🟡 Media', low: '🔴 Baja' }, en: { high: '🟢 High', medium: '🟡 Medium', low: '🔴 Low' } };
+                alignEl.textContent = (aMap[lang] || aMap.es)[GRANT.align] || GRANT.align;
+            }
+        };
+    </script>
+</body>
+
+</html>

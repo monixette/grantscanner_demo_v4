@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Grant Scanner — Dashboard · Accountability Lab Mexico</title>
+    <meta name="description"
+        content="Grant intelligence pipeline for Accountability Lab Mexico. Real-time funder tracking, AI scoring, and proposal generation." />
+    <link rel="stylesheet" href="shared.css" />
+    <style>
+        /* ── Page-specific ── */
+        .priority-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            color: var(--accent);
+            background: var(--accent-glow);
+            border: 1px solid rgba(16, 185, 129, .25);
+            border-radius: 6px;
+            padding: 2px 8px;
+        }
+
+        .stat-change {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 99px;
+            margin-top: 4px;
+            display: inline-block;
+        }
+
+        .stat-up {
+            background: rgba(16, 185, 129, .12);
+            color: var(--accent);
+        }
+
+        .stat-down {
+            background: rgba(239, 68, 68, .1);
+            color: var(--red);
+        }
+
+        .empty-state {
+            padding: 48px 24px;
+            text-align: center;
+            color: var(--muted2);
+            font-size: 14px;
+        }
+
+        .hero-cta {
+            background: linear-gradient(135deg, rgba(16, 185, 129, .08), rgba(16, 185, 129, .02));
+            border: 1px solid rgba(16, 185, 129, .2);
+            border-radius: var(--radius);
+            padding: 20px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 24px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .results-count {
+            font-size: 12px;
+            color: var(--muted2);
+            font-weight: 500;
+            margin-left: auto;
+        }
+
+        .sort-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 16px;
+            background: var(--surface2);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .sort-btn {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 6px;
+            color: var(--muted2);
+            cursor: pointer;
+            background: none;
+            border: none;
+            transition: all var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .sort-btn:hover,
+        .sort-btn.active {
+            color: var(--accent);
+        }
+
+        .sort-btn.active::after {
+            content: ' ↓';
+        }
+
+        .col-actions {
+            width: 80px;
+            text-align: right;
+        }
+
+        /* Row-level status indicator */
+        .row-urgent td:first-child::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: var(--accent);
+        }
+
+        .row-closed {
+            opacity: .7;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ═══════════════════════════ NAVBAR ═══════════════════════════ -->
+    <nav class="navbar" role="navigation" aria-label="Main navigation">
+        <a href="index.html" class="navbar-brand" aria-label="Grant Scanner home">
+            <div class="brand-icon">GS</div>
+            <div>
+                <span class="brand-name">Grant Scanner</span>
+                <span class="brand-org">Accountability Lab Mexico</span>
+            </div>
+        </a>
+
+        <div class="navbar-links">
+            <a href="index.html" class="nav-link active">🏠 Dashboard</a>
+            <a href="#" class="nav-link">📊 Pipeline</a>
+            <a href="#" class="nav-link">📄 Reports</a>
+            <a href="#" class="nav-link">⚙️ Settings</a>
+        </div>
+
+        <div class="navbar-actions">
+            <span class="nav-badge">Mapeo 2026</span>
+            <button class="lang-toggle" id="langToggle" title="Switch language / Cambiar idioma"
+                aria-label="Switch language">EN</button>
+            <button class="theme-toggle" id="themeToggle" title="Toggle dark/light mode"
+                aria-label="Toggle theme">🌙</button>
+        </div>
+
+        <button class="burger" id="burgerBtn" aria-label="Open menu" aria-expanded="false">
+            <span></span><span></span><span></span>
+        </button>
+    </nav>
+
+    <!-- Mobile drawer -->
+    <div class="mobile-drawer" id="mobileDrawer" role="navigation">
+        <a href="index.html" class="mobile-nav-link active">🏠 Dashboard</a>
+        <a href="#" class="mobile-nav-link">📊 Pipeline</a>
+        <a href="#" class="mobile-nav-link">📄 Reports</a>
+        <a href="#" class="mobile-nav-link">⚙️ Settings</a>
+        <div style="padding-top:8px;border-top:1px solid var(--border);">
+            <div style="padding-top:4px;">
+                <button class="mobile-nav-link w-full" style="text-align:left;" onclick="switchLang()">
+                    <span id="mobileLangLabel">🌐 Switch to English</span>
+                </button>
+            </div>
+            <button class="mobile-nav-link w-full" style="text-align:left;" onclick="toggleTheme()">
+                <span id="mobileThemeLabel">🌙 Switch to Light Mode</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════ PAGE ═══════════════════════════ -->
+    <div class="page-wrap">
+        <div class="container">
+
+            <!-- Header -->
+            <div class="mb-20">
+                <div class="label mb-8" data-i18n="dash.ctx">Inteligencia de Funders · Feb 2026</div>
+                <h1 class="page-title" data-i18n="dash.title">Grant Dashboard</h1>
+                <p class="page-sub" data-i18n="dash.sub">18 funders mapeados · Estatus en tiempo real · Scores de
+                    alineación IA en el pipeline de AL Mexico</p>
+            </div>
+
+            <!-- KPI strip -->
+            <div class="kpi-grid mb-28">
+                <div class="kpi card-lift" style="--ac:var(--accent);">
+                    <div class="kpi-icon">🔍</div>
+                    <div class="kpi-val text-accent" id="kpi1">0</div>
+                    <div class="kpi-lbl" data-i18n="kpi.mapped">Funders Mapped</div>
+                    <div class="stat-change stat-up" data-i18n="kpi.ch1">↑ 3 this month</div>
+                </div>
+                <div class="kpi card-lift" style="--ac:var(--gold);">
+                    <div class="kpi-icon">⚡</div>
+                    <div class="kpi-val text-gold" id="kpi2">0</div>
+                    <div class="kpi-lbl" data-i18n="kpi.open">Open / Active</div>
+                    <div class="stat-change stat-up" data-i18n="kpi.ch2">Verified today</div>
+                </div>
+                <div class="kpi card-lift" style="--ac:var(--purple);">
+                    <div class="kpi-icon">📝</div>
+                    <div class="kpi-val" style="color:var(--purple);" id="kpi3">0</div>
+                    <div class="kpi-lbl" data-i18n="kpi.progress">In Progress</div>
+                    <div class="stat-change stat-up" data-i18n="kpi.ch3">↑ 1 new</div>
+                </div>
+                <div class="kpi card-lift" style="--ac:var(--accent);">
+                    <div class="kpi-icon">🏆</div>
+                    <div class="kpi-val text-accent" id="kpi4">0</div>
+                    <div class="kpi-lbl" data-i18n="kpi.submitted">Submitted Q1 2026</div>
+                    <div class="stat-change stat-up" data-i18n="kpi.ch4">2 awaiting decision</div>
+                </div>
+            </div>
+
+            <!-- Hero CTA (Priority Action) -->
+            <div class="hero-cta mb-20" id="heroCta">
+                <div>
+                    <div class="flex items-center gap-8 mb-8">
+                        <span class="badge badge-urgent" data-i18n="cta.badge">⚡ Prioridad Inmediata</span>
+                        <span class="text-xs text-muted" data-i18n="cta.meta">Score 74/100 · Verificado Feb 28, 2026 ·
+                            27 días al cierre</span>
+                    </div>
+                    <div class="font-bold mb-4" style="font-size:16px;" data-i18n="cta.title">Fundación Merced IDEAS
+                        2026 — Convocatoria abierta hasta 27 marzo</div>
+                    <div class="text-sm text-muted" data-i18n-html="cta.desc">Democracia · Ciudadanía · Juventudes · OSC
+                        México · Donataria requerida · <strong style="color:var(--accent);">Acción recomendada: aplicar
+                            ahora</strong>
+                    </div>
+                </div>
+                <a href="grant.html?id=1" class="btn btn-primary btn-lg" style="white-space:nowrap;"
+                    data-i18n="cta.btn">
+                    Revisar y Aplicar →
+                </a>
+            </div>
+
+            <!-- ── FILTER BAR ── -->
+            <div class="filter-section mb-8">
+
+                <!-- Row 1: Search + quick status -->
+                <div class="filter-row mb-12">
+                    <input type="text" class="search-input" id="searchInput" placeholder="🔍  Search funders…"
+                        oninput="applyFilters()" />
+
+                    <div class="filter-divider"></div>
+
+                    <div class="filter-pills" id="statusPills">
+                        <button class="filter-pill active" data-filter-status="all" onclick="setStatus(this)"
+                            data-i18n="fil.all">Todos</button>
+                        <button class="filter-pill" data-filter-status="open" onclick="setStatus(this)"
+                            data-i18n="fil.open">⚡ Abierto</button>
+                        <button class="filter-pill" data-filter-status="closed" onclick="setStatus(this)"
+                            data-i18n="fil.closed">✕ Cerrado</button>
+                        <button class="filter-pill" data-filter-status="invite" onclick="setStatus(this)"
+                            data-i18n="fil.invite">🔒 Por Invitación</button>
+                        <button class="filter-pill" data-filter-status="watch" onclick="setStatus(this)"
+                            data-i18n="fil.watch">👁 Monitoreo</button>
+                    </div>
+
+                    <span class="results-count" id="resultsCount"></span>
+                </div>
+
+                <!-- Row 2: secondary filters -->
+                <div class="filter-row">
+                    <span class="filter-label-sm" data-i18n="fil.alignment">Alineación:</span>
+                    <div class="filter-pills" id="alignPills">
+                        <button class="filter-pill active" data-filter-align="all" onclick="setAlign(this)"
+                            data-i18n="fil.all">Todos</button>
+                        <button class="filter-pill" data-filter-align="high" onclick="setAlign(this)"
+                            data-i18n="fil.high">🟢 Alta</button>
+                        <button class="filter-pill" data-filter-align="medium" onclick="setAlign(this)"
+                            data-i18n="fil.medium">🟡 Media</button>
+                        <button class="filter-pill" data-filter-align="low" onclick="setAlign(this)"
+                            data-i18n="fil.low">🔴 Baja</button>
+                    </div>
+
+                    <div class="filter-divider"></div>
+
+                    <span class="filter-label-sm" data-i18n="fil.region">Región:</span>
+                    <select class="filter-select" id="regionSelect" onchange="applyFilters()">
+                        <option value="all" data-i18n="fil.allregions">Todas las regiones</option>
+                        <option value="mexico">🇲🇽 México</option>
+                        <option value="latam">🌎 LATAM</option>
+                        <option value="global">🌐 Global</option>
+                    </select>
+
+                    <div class="filter-divider"></div>
+
+                    <span class="filter-label-sm" data-i18n="fil.sort">Orden:</span>
+                    <select class="filter-select" id="sortSelect" onchange="applyFilters()">
+                        <option value="score" data-i18n="fil.sortScore">Score ↓</option>
+                        <option value="deadline" data-i18n="fil.sortDeadline">Fecha ↑</option>
+                        <option value="name" data-i18n="fil.sortName">Nombre A–Z</option>
+                    </select>
+
+                    <button class="btn btn-ghost" style="padding:5px 12px;font-size:12px;" onclick="resetFilters()"
+                        data-i18n="fil.reset">✕ Reset</button>
+                </div>
+            </div>
+
+            <!-- ── GRANTS TABLE ── -->
+            <div class="grant-table-wrap">
+
+                <!-- Sort row (desktop only) -->
+                <div class="sort-row" style="display:none;" id="sortRowDesk">
+                    <!-- shown programmatically on desktop -->
+                </div>
+
+                <table class="grant-table" id="grantsTable" aria-label="Grant opportunities">
+                    <thead>
+                        <tr>
+                            <th style="width:14px;"></th>
+                            <th data-i18n="th.funder">Funder / Programa</th>
+                            <th data-i18n="th.region">Región</th>
+                            <th data-i18n="th.cycle">Ciclo / Cierre</th>
+                            <th data-i18n="th.amount">Monto</th>
+                            <th>
+                                <span class="with-tooltip" data-i18n="th.score">Score
+                                    <span class="tooltip" data-i18n="th.scoreTooltip">Score de afinidad IA (0–100)
+                                        basado en alineación de misión, geografía, tipo de org, viabilidad financiera,
+                                        plazo, capacidad, valores compartidos y factores de riesgo.</span>
+                                </span>
+                            </th>
+                            <th data-i18n="th.status">Estado</th>
+                            <th class="col-actions"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="grantsBody">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+
+                <!-- Empty state -->
+                <div class="empty-state" id="emptyState" style="display:none;">
+                    <div style="font-size:32px;margin-bottom:12px;">🔍</div>
+                    <div class="font-bold mb-8">No grants match your filters</div>
+                    <div class="text-muted" style="font-size:13px;">Try adjusting the status, alignment, or region
+                        filters above.</div>
+                    <button class="btn btn-ghost mt-16" onclick="resetFilters()" style="margin:12px auto 0;">Reset
+                        filters</button>
+                </div>
+
+            </div>
+
+            <!-- (Hero CTA moved above filter bar) -->
+
+        </div><!-- /container -->
+    </div><!-- /page-wrap -->
+
+    <!-- ── BOTTOM BAR ── -->
+    <div class="bottom-bar">
+        <div class="bottom-steps" aria-label="Pipeline progress">
+            <div class="bottom-dot active" title="Step 1: Dashboard"></div>
+            <div class="bottom-dot" title="Step 2: Grant Detail"></div>
+            <div class="bottom-dot" title="Step 3: Score Report"></div>
+            <div class="bottom-dot" title="Step 4: Decision"></div>
+            <div class="bottom-dot" title="Step 5: Generating"></div>
+            <div class="bottom-dot" title="Step 6: Output"></div>
+        </div>
+        <span class="text-sm text-muted" data-i18n="step.1">Step 1 of 6 — Dashboard</span>
+        <a href="grant.html?id=1" class="btn btn-primary" data-i18n="btn.priority">
+            Abrir Grant Prioritario →
+        </a>
+    </div>
+
+    <!-- ── HOVER CARD (floating, shared) ── -->
+    <div class="hover-card" id="hoverCard" role="tooltip" aria-live="polite"></div>
+
+    <script>
+        /* ====================================================
+           GRANT SCANNER — Dashboard JS
+           ==================================================== */
+
+
+        /* ── State ── */
+        let activeStatus = "all";
+        let activeAlign = "all";
+        let activeRegion = "all";
+        let activeSearch = "";
+        let activeSort = "score";
+
+        /* ── Init ── */
+        document.addEventListener('DOMContentLoaded', () => {
+            animateKPIs();
+            applyFilters();
+        });
+
+        /* ── Animate KPIs ── */
+        function animateKPIs() {
+            const targets = [18, 4, 3, 2];
+            const ids = ['kpi1', 'kpi2', 'kpi3', 'kpi4'];
+            ids.forEach((id, i) => {
+                let n = 0, target = targets[i];
+                const el = document.getElementById(id);
+                const step = () => {
+                    n = Math.min(n + 1, target);
+                    el.textContent = n;
+                    if (n < target) requestAnimationFrame(step);
+                };
+                setTimeout(() => requestAnimationFrame(step), i * 150);
+            });
+        }
+
+        /* ── Filter logic ── */
+        function setStatus(btn) {
+            document.querySelectorAll('[data-filter-status]').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            activeStatus = btn.dataset.filterStatus;
+            applyFilters();
+        }
+        function setAlign(btn) {
+            document.querySelectorAll('[data-filter-align]').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            activeAlign = btn.dataset.filterAlign;
+            applyFilters();
+        }
+        function resetFilters() {
+            activeStatus = 'all'; activeAlign = 'all'; activeRegion = 'all';
+            activeSearch = ''; activeSort = 'score';
+            document.querySelectorAll('[data-filter-status]').forEach(b => b.classList.toggle('active', b.dataset.filterStatus === 'all'));
+            document.querySelectorAll('[data-filter-align]').forEach(b => b.classList.toggle('active', b.dataset.filterAlign === 'all'));
+            document.getElementById('regionSelect').value = 'all';
+            document.getElementById('sortSelect').value = 'score';
+            document.getElementById('searchInput').value = '';
+            applyFilters();
+        }
+        function applyFilters() {
+            activeSearch = document.getElementById('searchInput').value.toLowerCase();
+            activeRegion = document.getElementById('regionSelect').value;
+            activeSort = document.getElementById('sortSelect').value;
+
+            let filtered = window.GRANTS.filter(g => {
+                if (activeStatus !== 'all' && g.status !== activeStatus) return false;
+                if (activeAlign !== 'all' && g.align !== activeAlign) return false;
+                if (activeRegion !== 'all' && g.region !== activeRegion) return false;
+                if (activeSearch && !g.name.toLowerCase().includes(activeSearch)
+                    && !g.sub.toLowerCase().includes(activeSearch)) return false;
+                return true;
+            });
+
+            // Sort
+            filtered.sort((a, b) => {
+                if (activeSort === 'score') return b.score - a.score;
+                if (activeSort === 'deadline') return new Date(a.deadlineDate) - new Date(b.deadlineDate);
+                if (activeSort === 'name') return a.name.localeCompare(b.name);
+                return 0;
+            });
+
+            renderGrants(filtered);
+            const lang = window.currentLang || 'es';
+            document.getElementById('resultsCount').textContent =
+                lang === 'es' ? `${filtered.length} resultados` : `${filtered.length} results`;
+
+            // Empty state
+            const emptyEl = document.getElementById('emptyState');
+            if (emptyEl) {
+                emptyEl.style.display = filtered.length ? 'none' : 'block';
+                const emptyMsg = emptyEl.querySelector('.text-muted');
+                if (emptyMsg) emptyMsg.textContent = lang === 'es'
+                    ? 'Intenta ajustar los filtros de estado, alineación o región.'
+                    : 'Try adjusting the status, alignment, or region filters above.';
+            }
+        }
+
+        /* ── Render ── */
+        function renderGrants(list) {
+            const tbody = document.getElementById('grantsBody');
+            const alignDot = { high: 'dot-high', medium: 'dot-medium', low: 'dot-low' };
+            const scoreCls = s => s >= 65 ? 'score-high' : s >= 45 ? 'score-mid' : 'score-low';
+            let html = '';
+            let lastPriority = null;
+
+            list.forEach((g, i) => {
+                const lang = window.currentLang || 'es';
+                const SEC_PRIORITY = lang === 'es' ? '⚡ Prioridad · Convocatoria Activa' : '⚡ Priority · Active Call';
+                const SEC_ALL = lang === 'es' ? 'Todos los Funders' : 'All Funders';
+                const SEC_FILTERED = lang === 'es' ? 'Todos los Funders · Resultados Filtrados' : 'All Funders · Filtered Results';
+                // Section labels
+                if (i === 0 && g.priority) {
+                    html += `<tr class="table-section-row"><td colspan="8">${SEC_PRIORITY}</td></tr>`;
+                }
+                if (i > 0 && !g.priority && list[i - 1].priority) {
+                    html += `<tr class="table-section-row"><td colspan="8">${SEC_ALL}</td></tr>`;
+                }
+                if (i === 0 && !g.priority) {
+                    html += `<tr class="table-section-row"><td colspan="8">${SEC_FILTERED}</td></tr>`;
+                }
+
+                // Bilingual status label
+                const STATUS_MAP = {
+                    es: { open: '⚡ Abierto', closed: 'Cerrado 2025', watch: 'Monitoreo 2027', invite: 'Por Invitación', pending: 'Decisión Pendiente', next: 'Próximo Ciclo', active: 'Registro Activo', noopen: 'Sin Convocatoria', recommend: 'Por Recomendación' },
+                    en: { open: '⚡ Open', closed: 'Closed 2025', watch: 'Monitoring 2027', invite: 'By Invitation', pending: 'Decision Pending', next: 'Next Cycle', active: 'Active Registration', noopen: 'No Open Call', recommend: 'By Recommendation' }
+                };
+                const statusLabel = STATUS_MAP[lang][g.status] || g.statusLabel;
+
+                const rowCls = [
+                    g.priority ? 'priority-row row-urgent' : '',
+                    g.status === 'closed' ? 'row-closed' : ''
+                ].join(' ');
+
+                html += `
+      <tr class="${rowCls}"
+          data-id="${g.id}"
+          onmouseenter="showHover(event, ${g.id})"
+          onmouseleave="hideHover()"
+          onclick="window.location='${g.link}'"
+          style="cursor:pointer">
+        <td style="position:relative;"><span class="align-dot ${alignDot[g.align]}"></span></td>
+        <td>
+          <div class="grant-name-cell">${g.priority ? '<span style="color:var(--accent)">\u2B50 </span>' : ''}${g.name}</div>
+          <div class="grant-sub-cell">${g.sub}</div>
+        </td>
+        <td><span class="tag" style="font-size:11px;">${g.regionLabel}</span></td>
+        <td>
+          <span class="badge ${g.statusClass}" style="font-size:10px;">${statusLabel}</span>
+          <div style="font-size:11px;color:var(--muted2);margin-top:4px;">${g.deadline}</div>
+        </td>
+        <td style="font-weight:700;color:${g.status === 'open' ? 'var(--accent)' : 'var(--muted2)'};font-size:13px;">${g.amount}</td>
+        <td>
+          <span class="score-pill ${scoreCls(g.score)} with-tooltip">
+            ${g.score}
+              <span class="tooltip" id="scoreTip_${g.id}">${lang === 'es' ? 'Score de afinidad IA (0–100) basado en alineación de misión, geografía, tipo de org, viabilidad financiera, plazo, capacidad, valores compartidos y riesgo.' : 'AI-calculated affinity score (0–100) based on mission alignment, geography, org type, financial viability, timeline, capacity, shared values, and risk.'}</span>
+            </span>
+          </td>
+          <td>
+            <span class="badge ${g.statusClass}">${statusLabel}</span>
+          </td>
+          <td class="col-actions" onclick="event.stopPropagation()">
+            <a href="${g.link}" class="btn btn-ghost" style="padding:6px 12px;font-size:11px;">${lang === 'es' ? 'Ver \u2192' : 'Open \u2192'}</a>
+          </td>
+        </tr>`;
+            });
+
+            tbody.innerHTML = html;
+        }
+
+        /* ── Hover card ── */
+        const hoverCard = document.getElementById('hoverCard');
+        let hoverTimeout;
+        function showHover(e, id) {
+            hoverTimeout = setTimeout(() => {
+                const g = window.GRANTS.find(x => x.id === id);
+                if (!g) return;
+                const lang = window.currentLang || 'es';
+                const alignColor = { high: 'var(--accent)', medium: 'var(--gold)', low: 'var(--red)' };
+                const alignLabel = lang === 'es'
+                    ? { high: 'Alta', medium: 'Media', low: 'Baja' }
+                    : { high: 'High', medium: 'Medium', low: 'Low' };
+                const L = lang === 'es'
+                    ? { align: 'Alineación', score: 'Score', amount: 'Monto', deadline: 'Cierre', prog: 'Programas' }
+                    : { align: 'Alignment', score: 'Score', amount: 'Amount', deadline: 'Deadline', prog: 'Programs' };
+                const prg = (g.programs || []).join(', ') || '—';
+                hoverCard.innerHTML = `
+          <div class="hc-title">${g.name}</div>
+          <div style="font-size:11px;color:var(--muted2);margin-bottom:10px;">${g.sub}</div>
+          <div class="hc-row"><span class="hc-key">${L.align}</span><span class="hc-val" style="color:${alignColor[g.align]}">${alignLabel[g.align]}</span></div>
+          <div class="hc-row"><span class="hc-key">${L.score}</span><span class="hc-val">${g.score}/100</span></div>
+          <div class="hc-row"><span class="hc-key">${L.amount}</span><span class="hc-val">${g.amount}</span></div>
+          <div class="hc-row"><span class="hc-key">${L.deadline}</span><span class="hc-val">${g.deadline}</span></div>
+          <div class="hc-row"><span class="hc-key">${L.prog}</span><span class="hc-val">${prg}</span></div>
+          <div style="font-size:11px;color:var(--muted2);margin-top:8px;padding-top:8px;border-top:1px solid var(--border);">${g.note}</div>
+        `;
+                const x = Math.min(e.clientX + 20, window.innerWidth - 300);
+                const y = Math.min(e.clientY - 20, window.innerHeight - 200);
+                hoverCard.style.left = x + 'px';
+                hoverCard.style.top = y + 'px';
+                hoverCard.classList.add('visible');
+            }, 300);
+        }
+        function hideHover() {
+            clearTimeout(hoverTimeout);
+            hoverCard.classList.remove('visible');
+        }
+
+        /* Theme handled by app.js */
+
+        /* ── Re-render table on lang switch ── */
+        window._scoreRerender = function () { applyFilters(); };
+
+        /* ── Burger ── */
+        const burgerBtn = document.getElementById('burgerBtn');
+        const mobileDrawer = document.getElementById('mobileDrawer');
+        burgerBtn.addEventListener('click', () => {
+            const open = mobileDrawer.classList.toggle('open');
+            burgerBtn.setAttribute('aria-expanded', open);
+            burgerBtn.querySelectorAll('span').forEach((s, i) => {
+                if (open) {
+                    if (i === 0) s.style.transform = 'translateY(7px) rotate(45deg)';
+                    if (i === 1) s.style.opacity = '0';
+                    if (i === 2) s.style.transform = 'translateY(-7px) rotate(-45deg)';
+                } else {
+                    s.style.transform = ''; s.style.opacity = '';
+                }
+            });
+        });
+        // Close drawer on outside click
+        document.addEventListener('click', (e) => {
+            if (!burgerBtn.contains(e.target) && !mobileDrawer.contains(e.target)) {
+                mobileDrawer.classList.remove('open');
+                burgerBtn.setAttribute('aria-expanded', false);
+                burgerBtn.querySelectorAll('span').forEach(s => { s.style.transform = ''; s.style.opacity = ''; });
+            }
+        });
+    </script>
+
+    <script src="grants.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>

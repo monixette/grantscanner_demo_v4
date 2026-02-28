@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title id="pageTitle">Grant Scanner — Propuesta Generada</title>
+    <link rel="stylesheet" href="shared.css" />
+    <style>
+        /* ── Print styles ── */
+        @media print {
+
+            .navbar,
+            .mobile-drawer,
+            .bottom-bar,
+            .output-sidebar,
+            .prop-lang-bar,
+            .page-actions-bar {
+                display: none !important;
+            }
+
+            .output-layout {
+                display: block !important;
+            }
+
+            .doc-wrap {
+                max-height: none !important;
+                overflow: visible !important;
+                border: none !important;
+                padding: 0 !important;
+            }
+
+            body {
+                background: white !important;
+            }
+
+            .page-wrap {
+                padding-top: 0 !important;
+            }
+        }
+
+        .output-layout {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 20px;
+            align-items: start;
+        }
+
+        @media(max-width:1024px) {
+            .output-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .output-sidebar {
+                order: -1;
+            }
+        }
+
+        /* ── Document area ── */
+        .doc-wrap {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 32px 36px;
+            overflow-y: auto;
+            max-height: 72vh;
+            font-size: 14px;
+            line-height: 1.75;
+        }
+
+        @media(max-width:640px) {
+            .doc-wrap {
+                padding: 18px 18px;
+                max-height: none;
+            }
+        }
+
+        /* Markdown-rendered content styles */
+        .doc-wrap h1 {
+            font-size: 20px;
+            font-weight: 800;
+            margin: 0 0 16px;
+            color: var(--text);
+        }
+
+        .doc-wrap h2 {
+            font-size: 15px;
+            font-weight: 700;
+            margin: 24px 0 10px;
+            color: var(--accent);
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 4px;
+        }
+
+        .doc-wrap h3 {
+            font-size: 13px;
+            font-weight: 700;
+            margin: 16px 0 6px;
+            color: var(--text);
+        }
+
+        .doc-wrap p {
+            margin: 0 0 12px;
+            color: var(--text2);
+        }
+
+        .doc-wrap ul {
+            margin: 0 0 12px;
+            padding-left: 20px;
+            color: var(--text2);
+        }
+
+        .doc-wrap li {
+            margin-bottom: 4px;
+        }
+
+        .doc-wrap hr {
+            border: none;
+            border-top: 1px solid var(--border);
+            margin: 20px 0;
+        }
+
+        .doc-wrap table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 16px;
+            font-size: 13px;
+        }
+
+        .doc-wrap th {
+            background: var(--surface2);
+            padding: 8px 10px;
+            text-align: left;
+            font-weight: 700;
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .doc-wrap td {
+            padding: 7px 10px;
+            border: 1px solid var(--border);
+            color: var(--text2);
+            vertical-align: top;
+        }
+
+        .doc-wrap strong {
+            color: var(--text);
+            font-weight: 700;
+        }
+
+        .doc-wrap .doc-meta {
+            background: var(--surface2);
+            border-radius: 8px;
+            padding: 12px 14px;
+            font-size: 11px;
+            color: var(--muted2);
+            margin-bottom: 20px;
+            font-family: monospace;
+            line-height: 1.6;
+        }
+
+        /* ── Sidebar ── */
+        .sidebar-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 18px 20px;
+            margin-bottom: 14px;
+        }
+
+        .sidebar-meta-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 7px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 12px;
+        }
+
+        .sidebar-meta-row:last-child {
+            border: none;
+        }
+
+        .meta-key {
+            color: var(--muted2);
+        }
+
+        .meta-val {
+            font-weight: 600;
+        }
+
+        .action-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            border-radius: 10px;
+            border: 1px solid var(--border2);
+            background: var(--surface2);
+            color: var(--muted2);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition);
+            text-decoration: none;
+            width: 100%;
+            margin-bottom: 8px;
+        }
+
+        .action-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .action-btn .icon {
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .copy-success {
+            color: var(--accent) !important;
+        }
+
+        /* ── Proposal lang toggle ── */
+        .prop-lang-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+            flex-wrap: wrap;
+        }
+
+        /* ── Impact grid ── */
+        .amp-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .amp-stat {
+            background: var(--surface2);
+            border-radius: 10px;
+            padding: 12px 10px;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+
+        .amp-val {
+            font-size: 20px;
+            font-weight: 900;
+            color: var(--accent);
+        }
+
+        .amp-lbl {
+            font-size: 10px;
+            color: var(--muted2);
+            margin-top: 2px;
+        }
+
+        /* ── Loading state ── */
+        .loading-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--muted);
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <a href="index.html" class="navbar-brand">
+            <div class="brand-icon">GS</div>
+            <div><span class="brand-name">Grant Scanner</span><span class="brand-org">Accountability Lab Mexico</span>
+            </div>
+        </a>
+        <div class="navbar-links">
+            <a href="index.html" class="nav-link" data-i18n="nav.dash">🏠 Dashboard</a>
+            <a href="#" class="nav-link" id="navGrantLink">📋 Grant Detail</a>
+            <a href="#" class="nav-link" id="navScoreLink">📊 Score</a>
+            <a href="#" class="nav-link active">📄 Output</a>
+        </div>
+        <div class="navbar-actions">
+            <span class="nav-badge" data-i18n="nav.badge">Mapeo 2026</span>
+            <button class="lang-toggle" id="langToggle" title="Switch language / Cambiar idioma"
+                aria-label="Switch language">EN</button>
+            <button class="theme-toggle" id="themeToggle">☀️</button>
+        </div>
+        <button class="burger" id="burgerBtn" aria-label="Open menu"><span></span><span></span><span></span></button>
+    </nav>
+    <div class="mobile-drawer" id="mobileDrawer">
+        <a href="index.html" class="mobile-nav-link">🏠 Dashboard</a>
+        <a href="#" class="mobile-nav-link active">📄 Output</a>
+        <div style="padding-top:8px;border-top:1px solid var(--border);">
+            <div style="padding-top:4px;">
+                <button class="mobile-nav-link w-full" style="text-align:left;" onclick="switchLang()">
+                    <span id="mobileLangLabel">🌐 Switch to English</span>
+                </button>
+            </div>
+            <button class="mobile-nav-link w-full" style="text-align:left;" onclick="toggleTheme()"><span
+                    id="mobileThemeLabel">🌙 Switch to Dark Mode</span></button>
+        </div>
+    </div>
+
+    <div class="page-wrap">
+        <div class="container">
+
+            <!-- Header row -->
+            <div class="flex items-center justify-between mb-20" style="flex-wrap:wrap;gap:12px;">
+                <div>
+                    <div class="label mb-4" data-i18n="out.ctx">Borrador Generado</div>
+                    <h1 class="page-title" style="margin-bottom:4px;" id="outputPageTitle">Propuesta · Cargando...</h1>
+                    <p class="text-sm text-muted" id="outputPageMeta"></p>
+                </div>
+                <div class="flex gap-8" id="outputBadges"></div>
+            </div>
+
+            <!-- Proposal language toggle -->
+            <div class="prop-lang-bar">
+                <span class="text-xs text-muted" style="font-weight:700;text-transform:uppercase;letter-spacing:.5px;"
+                    data-i18n="out.propLang">Propuesta en:</span>
+                <button id="propLangEs" onclick="setPropLang('es')" class="filter-pill active"
+                    style="font-size:12px;">ES 🇲🇽 Español</button>
+                <button id="propLangEn" onclick="setPropLang('en')" class="filter-pill" style="font-size:12px;">EN 🇬🇧
+                    English</button>
+            </div>
+
+            <div class="output-layout">
+
+                <!-- Document preview -->
+                <div>
+                    <div id="docContent" class="doc-wrap">
+                        <div class="loading-state">⚡ Cargando propuesta…</div>
+                    </div>
+                </div>
+
+                <!-- Sidebar -->
+                <div class="output-sidebar">
+
+                    <div class="sidebar-card">
+                        <div class="label mb-12" data-i18n="out.info">Info del Documento</div>
+                        <div class="sidebar-meta-row"><span class="meta-key" data-i18n="out.metaGrant">Grant</span><span
+                                class="meta-val" id="sideGrant">–</span></div>
+                        <div class="sidebar-meta-row"><span class="meta-key"
+                                data-i18n="out.metaFunder">Financiadora</span><span class="meta-val"
+                                id="sideFunder">–</span></div>
+                        <div class="sidebar-meta-row"><span class="meta-key" data-i18n="out.metaScore">Score</span><span
+                                class="meta-val text-accent" id="sideScore">–</span></div>
+                        <div class="sidebar-meta-row"><span class="meta-key"
+                                data-i18n="out.metaWords">Palabras</span><span class="meta-val" id="wordCount">–</span>
+                        </div>
+                        <div class="sidebar-meta-row"><span class="meta-key"
+                                data-i18n="out.metaDeadline">Cierre</span><span class="meta-val"
+                                style="color:var(--gold);" id="sideDeadline">–</span></div>
+                        <div class="sidebar-meta-row"><span class="meta-key"
+                                data-i18n="out.metaStatus">Estado</span><span class="meta-val">Draft v1</span></div>
+                    </div>
+
+                    <div class="sidebar-card">
+                        <div class="label mb-12" data-i18n="out.actions">Acciones</div>
+                        <button class="action-btn" onclick="copyDoc()">
+                            <span class="icon">📋</span>
+                            <span id="copyLabel" data-i18n="out.copy">Copiar texto</span>
+                        </button>
+                        <button class="action-btn" onclick="downloadMd()">
+                            <span class="icon">⬇️</span>
+                            <span data-i18n="out.download">Descargar .md</span>
+                        </button>
+                        <button class="action-btn" onclick="exportPdf()">
+                            <span class="icon">🖨️</span>
+                            <span data-i18n="out.print">Descargar PDF</span>
+                        </button>
+                    </div>
+
+                    <div class="sidebar-card">
+                        <div class="label mb-8" data-i18n="out.amp">Impacto Potencial</div>
+                        <p class="text-xs text-muted mb-12" data-i18n="out.ampDesc">Si se financia, impacto estimado del
+                            trabajo de AL Mexico:</p>
+                        <div class="amp-grid" id="ampGrid">
+                            <div class="amp-stat">
+                                <div class="amp-val">80+</div>
+                                <div class="amp-lbl" data-i18n="out.youth">Personas</div>
+                            </div>
+                            <div class="amp-stat">
+                                <div class="amp-val">2</div>
+                                <div class="amp-lbl" data-i18n="out.cities">Comunidades</div>
+                            </div>
+                            <div class="amp-stat">
+                                <div class="amp-val" style="color:var(--gold);">25M+</div>
+                                <div class="amp-lbl" data-i18n="out.reach">Alcance est.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <a href="index.html" class="btn btn-ghost w-full" style="justify-content:center;"
+                        data-i18n="out.returnDash">
+                        ← Volver al Dashboard
+                    </a>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="bottom-bar">
+        <div class="bottom-steps">
+            <div class="bottom-dot done"></div>
+            <div class="bottom-dot done"></div>
+            <div class="bottom-dot done"></div>
+            <div class="bottom-dot done"></div>
+            <div class="bottom-dot done"></div>
+            <div class="bottom-dot active"></div>
+        </div>
+        <span class="text-sm text-muted" data-i18n="step.6">Paso 6/6 — Propuesta</span>
+        <a href="index.html" class="btn btn-primary" data-i18n="btn.new">← Nueva Búsqueda</a>
+    </div>
+
+    <script src="grants.js"></script>
+    <script src="proposals.js"></script>
+    <script src="app.js"></script>
+    <script>
+        /* ═══════════════════════════════════════════════
+           MINI MARKDOWN RENDERER
+        ═══════════════════════════════════════════════ */
+        function renderMarkdown(md) {
+            if (!md) return '<p>–</p>';
+            let html = md
+                // fenced code blocks (skip)
+                .replace(/```[\s\S]*?```/g, '')
+                // Horizontal rule
+                .replace(/^---+$/gm, '<hr/>')
+                // h1
+                .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+                // h2
+                .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+                // h3
+                .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+                // bold
+                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                // italic
+                .replace(/\*(.+?)\*/g, '<em>$1</em>')
+                // table rows (simple)
+                .replace(/^\|(.+)\|$/gm, (match, inner) => {
+                    const cells = inner.split('|').map(c => c.trim());
+                    if (cells.every(c => /^[-:]+$/.test(c))) return ''; // separator row
+                    const tag = cells[0] && /^[A-Z]/.test(cells[0]) && cells.length > 1 ? 'td' : 'td';
+                    return '<tr>' + cells.map(c => `<${tag}>${c}</${tag}>`).join('') + '</tr>';
+                })
+                // wrap consecutive <tr> in table
+                .replace(/(<tr>.*<\/tr>\n?)+/gs, m => `<table>${m}</table>`)
+                // unordered list items
+                .replace(/^[-*] (.+)$/gm, '<li>$1</li>')
+                // wrap consecutive <li> in <ul>
+                .replace(/(<li>.*<\/li>\n?)+/gs, m => `<ul>${m}</ul>`)
+                // numbered list
+                .replace(/^\d+\. (.+)$/gm, '<li>$1</li>')
+                // blank lines --> paragraph breaks
+                .split(/\n{2,}/).map(block => {
+                    block = block.trim();
+                    if (!block) return '';
+                    if (/^<(h[1-6]|ul|table|hr|li)/.test(block)) return block;
+                    return `<p>${block.replace(/\n/g, '<br/>')}</p>`;
+                }).join('\n');
+            return html;
+        }
+
+        /* ═══════════════════════════════════════════════
+           STATE
+        ═══════════════════════════════════════════════ */
+        let propLang = 'es';
+        let currentGrantId = 1;
+        let currentGrant = null;
+
+        /* ═══════════════════════════════════════════════
+           LOAD GRANT FROM URL PARAM
+        ═══════════════════════════════════════════════ */
+        function getGrantId() {
+            const params = new URLSearchParams(window.location.search);
+            return parseInt(params.get('id') || '1', 10);
+        }
+
+        function initOutput() {
+            currentGrantId = getGrantId();
+            currentGrant = (window.GRANTS || []).find(g => g.id === currentGrantId) || window.GRANTS[0];
+
+            // Update nav links
+            const navGrant = document.getElementById('navGrantLink');
+            const navScore = document.getElementById('navScoreLink');
+            if (navGrant) navGrant.href = `grant.html?id=${currentGrantId}`;
+            if (navScore) navScore.href = `score.html?id=${currentGrantId}`;
+
+            // Update page title
+            const lang = (typeof currentLang !== 'undefined' ? currentLang : 'es');
+            updateOutputHeader(lang);
+
+            // Render proposal (default ES)
+            renderProposal('es');
+
+            // Sidebar metadata
+            updateSidebar();
+        }
+
+        function updateOutputHeader(lang) {
+            if (!currentGrant) return;
+            const titleEl = document.getElementById('outputPageTitle');
+            const metaEl = document.getElementById('outputPageMeta');
+            const badgesEl = document.getElementById('outputBadges');
+            const pageTitle = document.getElementById('pageTitle');
+
+            const grantName = currentGrant.name || 'Grant';
+            if (titleEl) {
+                titleEl.textContent = lang === 'es'
+                    ? `Propuesta · ${grantName}`
+                    : `Proposal · ${grantName}`;
+            }
+            if (pageTitle) {
+                pageTitle.textContent = `Grant Scanner — ${lang === 'es' ? 'Propuesta' : 'Proposal'} · ${grantName}`;
+            }
+            if (metaEl) {
+                const funder = grantName.split('·')[0].trim();
+                const dateStr = lang === 'es' ? '28 feb 2026' : 'Feb 28, 2026';
+                metaEl.textContent = lang === 'es'
+                    ? `${funder} · Generado ${dateStr} · Borrador v1 · Asistido por IA`
+                    : `${funder} · Generated ${dateStr} · Draft v1 · AI-Assisted`;
+            }
+            if (badgesEl && currentGrant) {
+                const score = currentGrant.score || 0;
+                const badgeGo = score >= 65 ? 'badge-go' : score >= 50 ? 'badge-open' : 'badge-closed';
+                const deadline = currentGrant.deadline || '';
+                badgesEl.innerHTML = `
+                    <span class="badge ${badgeGo}">✅ Score ${score}/100</span>
+                    ${deadline && deadline !== 'No open call' ? `<span class="badge badge-urgent">⚡ ${deadline}</span>` : ''}
+                `;
+            }
+        }
+
+        function updateSidebar() {
+            if (!currentGrant) return;
+            const grantParts = (currentGrant.name || '').split('·');
+            document.getElementById('sideGrant').textContent = (grantParts[1] || grantParts[0] || '').trim();
+            document.getElementById('sideFunder').textContent = (grantParts[0] || '').trim();
+            document.getElementById('sideScore').textContent = `${currentGrant.score || 0} / 100`;
+            document.getElementById('sideDeadline').textContent = currentGrant.deadline || '–';
+        }
+
+        /* ═══════════════════════════════════════════════
+           PROPOSAL RENDERING
+        ═══════════════════════════════════════════════ */
+        function renderProposal(lang) {
+            const proposals = window.PROPOSALS || {};
+            const grantProposals = proposals[currentGrantId];
+            const docEl = document.getElementById('docContent');
+
+            if (!grantProposals) {
+                docEl.innerHTML = `<p style="color:var(--muted2);text-align:center;padding:40px 0;">
+                    ${lang === 'es'
+                        ? 'Propuesta no disponible para este grant.'
+                        : 'Proposal not available for this grant.'}</p>`;
+                document.getElementById('wordCount').textContent = '0';
+                return;
+            }
+
+            const mdText = grantProposals[lang] || grantProposals['es'] || '';
+
+            // Split header block (lines before first ---) to render as doc-meta
+            const parts = mdText.split(/^---+$/m);
+            let metaBlock = '';
+            let bodyMd = mdText;
+            if (parts.length > 1 && !parts[0].trim().startsWith('#')) {
+                metaBlock = parts[0].trim();
+                bodyMd = parts.slice(1).join('\n---\n').trim();
+            }
+
+            const metaHtml = metaBlock
+                ? `<div class="doc-meta">${metaBlock.replace(/\n/g, '<br/>')}</div>`
+                : '';
+
+            docEl.innerHTML = metaHtml + renderMarkdown(bodyMd);
+
+            // Word count
+            const wordCount = mdText.trim().split(/\s+/).length;
+            const wcLabel = lang === 'es' ? ' palabras' : ' words';
+            document.getElementById('wordCount').textContent = wordCount.toLocaleString() + wcLabel;
+        }
+
+        /* ═══════════════════════════════════════════════
+           PROPOSAL LANGUAGE TOGGLE
+        ═══════════════════════════════════════════════ */
+        function setPropLang(l) {
+            propLang = l;
+            document.getElementById('propLangEs').classList.toggle('active', l === 'es');
+            document.getElementById('propLangEn').classList.toggle('active', l === 'en');
+            renderProposal(l);
+        }
+
+        /* ═══════════════════════════════════════════════
+           ACTIONS: COPY, DOWNLOAD MD, PDF
+        ═══════════════════════════════════════════════ */
+        function getProposalText() {
+            const proposals = window.PROPOSALS || {};
+            const grantProposals = proposals[currentGrantId];
+            if (!grantProposals) return '';
+            return grantProposals[propLang] || grantProposals['es'] || '';
+        }
+
+        function copyDoc() {
+            const text = getProposalText();
+            if (!text) return;
+            navigator.clipboard.writeText(text).then(() => {
+                const lbl = document.getElementById('copyLabel');
+                const lang = (typeof currentLang !== 'undefined' ? currentLang : 'es');
+                lbl.textContent = lang === 'es' ? '✓ Copiado!' : '✓ Copied!';
+                lbl.classList.add('copy-success');
+                setTimeout(() => {
+                    lbl.textContent = lang === 'es' ? 'Copiar texto' : 'Copy text';
+                    lbl.classList.remove('copy-success');
+                }, 2200);
+            });
+        }
+
+        function downloadMd() {
+            const text = getProposalText();
+            if (!text) return;
+            const grantSlug = (currentGrant ? currentGrant.name : 'grant')
+                .replace(/[^a-zA-Z0-9]+/g, '_').replace(/^_|_$/g, '');
+            const filename = `ALMex_${grantSlug}_Draft_v1_${propLang.toUpperCase()}.md`;
+            const a = document.createElement('a');
+            a.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(text);
+            a.download = filename;
+            a.click();
+        }
+
+        function exportPdf() {
+            window.print();
+        }
+
+        /* ═══════════════════════════════════════════════
+           LANGUAGE HOOK (called by app.js on lang switch)
+        ═══════════════════════════════════════════════ */
+        window._outputRerender = function () {
+            const lang = (typeof currentLang !== 'undefined' ? currentLang : 'es');
+            updateOutputHeader(lang);
+            // Update word count label based on current prop lang
+            renderProposal(propLang);
+            // Update copy label
+            const lbl = document.getElementById('copyLabel');
+            if (lbl && !lbl.classList.contains('copy-success')) {
+                lbl.textContent = lang === 'es' ? 'Copiar texto' : 'Copy text';
+            }
+        };
+
+        /* ═══════════════════════════════════════════════
+           INIT
+        ═══════════════════════════════════════════════ */
+        document.addEventListener('DOMContentLoaded', initOutput);
+    </script>
+</body>
+
+</html>

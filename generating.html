@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Grant Scanner — Generando Propuesta</title>
+    <link rel="stylesheet" href="shared.css" />
+    <style>
+        .gen-center {
+            max-width: 600px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .gen-status-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--muted2);
+            letter-spacing: .3px;
+            margin-top: 12px;
+        }
+
+        .gen-list {
+            text-align: left;
+            max-width: 560px;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <a href="index.html" class="navbar-brand">
+            <div class="brand-icon">GS</div>
+            <div><span class="brand-name">Grant Scanner</span><span class="brand-org">Accountability Lab Mexico</span>
+            </div>
+        </a>
+        <div class="navbar-links">
+            <a href="index.html" class="nav-link" data-i18n="nav.dash">🏠 Dashboard</a>
+            <a href="grant.html" class="nav-link" data-i18n="nav.detail">📋 Grant Detail</a>
+            <a href="score.html" class="nav-link" data-i18n="nav.score">📊 Score</a>
+            <a href="#" class="nav-link active" data-i18n="nav.generating">⚙️ Generando</a>
+        </div>
+        <div class="navbar-actions">
+            <span class="nav-badge" data-i18n="nav.badge">Mapeo 2026</span>
+            <button class="lang-toggle" id="langToggle" title="Switch language / Cambiar idioma"
+                aria-label="Switch language">EN</button>
+            <button class="theme-toggle" id="themeToggle">🌙</button>
+        </div>
+        <button class="burger" id="burgerBtn" aria-label="Open menu"><span></span><span></span><span></span></button>
+    </nav>
+    <div class="mobile-drawer" id="mobileDrawer">
+        <a href="index.html" class="mobile-nav-link" data-i18n="nav.dash">🏠 Dashboard</a>
+        <a href="#" class="mobile-nav-link active" data-i18n="nav.generating">⚙️ Generando</a>
+        <div style="padding-top:8px;border-top:1px solid var(--border);">
+            <div style="padding-top:4px;">
+                <button class="mobile-nav-link w-full" style="text-align:left;" onclick="switchLang()">
+                    <span id="mobileLangLabel">🌐 Switch to English</span>
+                </button>
+            </div>
+            <button class="mobile-nav-link w-full" style="text-align:left;" onclick="toggleTheme()"><span
+                    id="mobileThemeLabel">🌙 Switch to Light Mode</span></button>
+        </div>
+    </div>
+
+    <div class="page-wrap">
+        <div class="container">
+
+            <div class="gen-center mb-28">
+                <div class="gen-orb" id="genOrb"></div>
+                <h1 class="page-title" style="font-size:24px;" data-i18n="gen.title">Redactando Propuesta…</h1>
+                <p class="page-sub mb-20" data-i18n="gen.sub">Grant Scanner está leyendo la convocatoria, sintetizando
+                    el portfolio de AL Mexico y redactando una solicitud a medida.</p>
+
+                <!-- Progress bar -->
+                <div class="gen-progress-track mb-8">
+                    <div class="gen-progress-fill" id="genProgress"></div>
+                </div>
+                <div class="gen-status-label" id="genStatusLabel" data-i18n="gen.init">Inicializando pipeline…</div>
+            </div>
+
+            <!-- Step list -->
+            <div class="card gen-list mb-20" style="padding:0;overflow:hidden;">
+                <div class="gen-step" id="step1">
+                    <div class="step-icon" id="si1">📡</div>
+                    <span id="stepText1">Obteniendo datos de la convocatoria…</span>
+                </div>
+                <div class="gen-step" id="step2">
+                    <div class="step-icon" id="si2">🗂️</div>
+                    <span id="stepText2" data-i18n="gen.step2">Cargando perfil organizacional y portfolio de AL
+                        Mexico</span>
+                </div>
+                <div class="gen-step" id="step3">
+                    <div class="step-icon" id="si3">🔍</div>
+                    <span id="stepText3">Verificando criterios de elegibilidad…</span>
+                </div>
+                <div class="gen-step" id="step4">
+                    <div class="step-icon" id="si4">✍️</div>
+                    <span id="stepText4" data-i18n="gen.step4">Redactando Sección 1 — Contexto Organizacional y
+                        Misión</span>
+                </div>
+                <div class="gen-step" id="step5">
+                    <div class="step-icon" id="si5">📝</div>
+                    <span id="stepText5" data-i18n="gen.step5">Redactando Sección 2 — Descripción del Proyecto y
+                        Objetivos</span>
+                </div>
+                <div class="gen-step" id="step6">
+                    <div class="step-icon" id="si6">📊</div>
+                    <span id="stepText6" data-i18n="gen.step6">Redactando Sección 3 — Teoría de Cambio y Lógica de
+                        Impacto</span>
+                </div>
+                <div class="gen-step" id="step7">
+                    <div class="step-icon" id="si7">💰</div>
+                    <span id="stepText7" data-i18n="gen.step7">Redactando Sección 4 — Marco Presupuestal (sin
+                        salarios)</span>
+                </div>
+                <div class="gen-step" id="step8">
+                    <div class="step-icon" id="si8">✅</div>
+                    <span id="stepText8" data-i18n="gen.step8">Revisión final · Verificación de cumplimiento · Formato
+                        de salida</span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="bottom-bar">
+        <div class="bottom-steps">
+            <div class="bottom-dot done"></div>
+            <div class="bottom-dot done"></div>
+            <div class="bottom-dot done"></div>
+            <div class="bottom-dot done"></div>
+            <div class="bottom-dot active"></div>
+            <div class="bottom-dot"></div>
+        </div>
+        <span class="text-sm text-muted" data-i18n="step.5">Paso 5/6 — Generando</span>
+        <a href="output.html" class="btn btn-primary" id="viewBtn" style="opacity:.4;pointer-events:none;"
+            data-i18n="btn.view">Ver Propuesta →</a>
+    </div>
+
+    <script src="grants.js"></script>
+    <script src="app.js"></script>
+    <script>
+        // Pass grant ID to output.html and update step labels dynamically
+        (function () {
+            const params = new URLSearchParams(window.location.search);
+            const grantId = params.get('id') || '1';
+            const btn = document.getElementById('viewBtn');
+            if (btn) btn.href = 'output.html?id=' + grantId;
+
+            // Load grant data to personalize step labels
+            const grant = window.GRANTS ? window.GRANTS.find(g => g.id === parseInt(grantId)) : null;
+            if (grant) {
+                const contact = grant.contact || grant.name;
+                const lang = document.documentElement.lang === 'en' ? 'en' : 'es';
+                document.getElementById('stepText1').textContent = lang === 'es'
+                    ? `Obteniendo datos de la convocatoria · ${contact}`
+                    : `Fetching grant data · ${contact}`;
+                document.getElementById('stepText3').textContent = lang === 'es'
+                    ? `Verificando criterios de elegibilidad · ${grant.name}`
+                    : `Running eligibility check · ${grant.name}`;
+            }
+        })();
+        const steps = [1, 2, 3, 4, 5, 6, 7, 8];
+        const labelsEs = [
+            'Obteniendo datos de la convocatoria…',
+            'Cargando perfil organizacional…',
+            'Verificando elegibilidad…',
+            'Redactando Sección 1…',
+            'Redactando Sección 2…',
+            'Redactando Sección 3…',
+            'Redactando Sección 4…',
+            'Finalizando documento…'
+        ];
+        const labelsEn = [
+            'Fetching live grant data…',
+            'Loading organizational profile…',
+            'Running eligibility check…',
+            'Writing Section 1…',
+            'Writing Section 2…',
+            'Writing Section 3…',
+            'Writing Section 4…',
+            'Finalizing document…'
+        ];
+
+        steps.forEach((n, i) => {
+            setTimeout(() => {
+                const el = document.getElementById('step' + n);
+                const si = document.getElementById('si' + n);
+                el.classList.add('visible');
+                const lang = (typeof currentLang !== 'undefined' ? currentLang : 'es');
+                document.getElementById('genStatusLabel').textContent = (lang === 'es' ? labelsEs : labelsEn)[i];
+                // Progress
+                const pct = Math.round(((i + 1) / steps.length) * 100);
+                document.getElementById('genProgress').style.width = pct + '%';
+                // Mark prev done
+                if (i > 0) {
+                    document.getElementById('si' + steps[i - 1]).textContent = '✓';
+                    document.getElementById('step' + steps[i - 1]).classList.add('done');
+                }
+                if (i === steps.length - 1) {
+                    setTimeout(() => {
+                        si.textContent = '✓';
+                        el.classList.add('done');
+                        const lang2 = (typeof currentLang !== 'undefined' ? currentLang : 'es');
+                        document.getElementById('genStatusLabel').textContent =
+                            lang2 === 'es' ? 'Propuesta lista — lista para revisar' : 'Proposal complete — ready to review';
+                        document.getElementById('genOrb').style.animation = 'none';
+                        document.getElementById('genOrb').style.boxShadow = '0 0 40px rgba(16,185,129,.4)';
+                        const btn = document.getElementById('viewBtn');
+                        btn.style.opacity = '1';
+                        btn.style.pointerEvents = 'auto';
+                    }, 600);
+                }
+            }, 800 + i * 900);
+        });
+    </script>
+</body>
+
+</html>
